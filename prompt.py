@@ -1,12 +1,11 @@
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 from openai import OpenAI
-
 import os
 import numpy as np
 from dotenv import load_dotenv
 
 # Load a Hugging Face model
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')  # Specify the model name you want to use
+# model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')  # Specify the model name you want to use
 
 load_dotenv()
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -44,43 +43,45 @@ def get_most_relevant_embeddings(embeddings, query_embedding):
 
 
 def query_model(website_data, resume_data):
-    website_paragraphs = split_into_paragraphs(website_data)
-    resume_paragraphs = split_into_paragraphs(resume_data)
 
-    website_embeddings = {}
-    for k in website_paragraphs:
-        website_embeddings[k] = get_embedding(k)
+    # website_embeddings = {}
+    # for k in website_paragraphs:
+    #     website_embeddings[k] = get_embedding(k)
 
-    resume_embeddings = {}
-    for k in resume_paragraphs:
-        resume_embeddings[k] = get_embedding(k)
+    # resume_embeddings = {}
+    # for k in resume_paragraphs:
+    #     resume_embeddings[k] = get_embedding(k)
 
-    q_embedding = get_embedding("values principles products services team about")
+    # q_embedding = get_embedding("values principles products services team about")
 
-    relevant_website_embeddings = get_most_relevant_embeddings(website_embeddings, q_embedding)
-    relevant_resume_embeddings = get_most_relevant_embeddings(resume_embeddings, q_embedding)
+    # relevant_website_embeddings = get_most_relevant_embeddings(website_embeddings, q_embedding)
+    # relevant_resume_embeddings = get_most_relevant_embeddings(resume_embeddings, q_embedding)
 
-    prompt = """CONTEXT:
+    context = f"""\n\nHere is some information about me:
+    {resume_data}
+
+
+    Here is the website of the company that I am interviewing with:
+    {website_data}
     """
 
-    prompt += ""
-    for r in relevant_resume_embeddings[:5]:
-        prompt += f"\n{r[1]}"
+    prompt = f"""You are an expert at preparing for interviews at Big Tech companies. I am a Computer Science student that is preparing for interviews. Given the information about the company that I am interviewing with below, generate an agenda for a 30 minute interview with the company. 
 
-    prompt += "\nAnd here is more information about the person I am meeting with:"
-    for r in relevant_website_embeddings[:5]:
-        prompt += f"\n{r[1]}"
+    For each section of the agenda, include specific topics to discuss based on my resume and the company's website. 
+             
+    {context}
+    """
+
+    print("PROMPT", prompt)
 
     res = openai_client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[
-            {"role": "system",
-             "content": "You are an expert at preparing for meetings. Given the information about the person that I am meeting below, generate an agenda for a meeting with this person. Here is some information about me for more context."},
-            {"role": "user", "content": prompt}
+            {"role": "user",
+             "content": prompt},
         ]
     )
 
     print(res.choices[0].message.content)
 
     return res.choices[0].message.content
-    # return "test"

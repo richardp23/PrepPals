@@ -3,6 +3,11 @@ from bs4 import BeautifulSoup
 from pdfminer.high_level import extract_text
 
 def scrape_website(url):
+
+    # Handle invalid URLs
+    if not url.startswith('http'):
+        url = 'http://' + url
+
     # Send a request to the URL
     response = requests.get(url)
 
